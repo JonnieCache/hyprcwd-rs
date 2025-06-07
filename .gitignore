@@ -1,6 +1,6 @@
-.cargo
+.cargo/**
 /target
 result*
-.direnv
+.direnv/**
 .envrc
 .aider*
