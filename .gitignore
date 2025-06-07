@@ -1,0 +1,6 @@
+.cargo
+/target
+result*
+.direnv
+.envrc
+.aider*
