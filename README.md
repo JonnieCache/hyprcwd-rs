@@ -4,11 +4,11 @@ Outputs the working directory of the currently active window in the hyprland win
 
 Intended for starting a new terminal window from a hotkey, in the directory of the currently active window.
 
-Rust port of [https://github.com/vilari-mickopf/hyprcwd], to shave off those milliseconds.
+Rust port of https://github.com/vilari-mickopf/hyprcwd, to shave off those milliseconds.
 
 ## Install
 
-- `cargo install hyprcwd`
+- `cargo install --path .`
 
 - The included `flake.nix`
 
@@ -16,10 +16,10 @@ Rust port of [https://github.com/vilari-mickopf/hyprcwd], to shave off those mil
 
 ## Usage
 
-Hyprland binding:
+Hyprland key binding:
 
 ```
 bind = $mainMod, T, exec, kitty -d "$(hyprcwd)"
 ```
 
-or equivalent for your terminal app.
+or the equivalent for your terminal app.
