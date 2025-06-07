@@ -1,5 +1,5 @@
 {
-  description = "Build a cargo project";
+  description = "hyprcwd-rs";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
