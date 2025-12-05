@@ -1,19 +1,26 @@
-use anyhow::Result;
+mod error;
+
+use error::{HyprCwdError as Error, HyprCwdResult as Result};
 use hyprland::data::Client;
 use hyprland::shared::HyprDataActiveOptional;
 use procfs::process::Process;
 use std::env;
+use std::process::exit;
 
-fn main() -> Result<()> {
-    let working_dir = active_window_cwd()?;
-    println!("{}", working_dir);
-
-    Ok(())
+fn main() {
+    match active_window_cwd() {
+        Ok(working_dir) => {
+            println!("{}", working_dir);
+        }
+        Err(err) => {
+            eprintln!("{}", err);
+            exit(1);
+        }
+    };
 }
 
 fn active_window_cwd() -> Result<String> {
-    let active_window =
-        Client::get_active()?.ok_or_else(|| anyhow::anyhow!("No active window found"))?;
+    let active_window = Client::get_active()?.ok_or(Error::NoActiveWindow)?;
     let window_pid = active_window.pid;
 
     let child_pid = newest_child_process(window_pid)?;
@@ -44,5 +51,5 @@ fn process_cwd(pid: i32) -> Result<String> {
 }
 
 fn home_dir() -> Result<String> {
-    env::var("HOME").map_err(|e| anyhow::anyhow!("Could not get HOME directory: {}", e))
+    env::var("HOME").map_err(Error::EnvVarError)
 }
