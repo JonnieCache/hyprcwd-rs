@@ -1,18 +1,34 @@
 mod error;
 
+use clap::Parser;
 use error::{HyprCwdError as Error, HyprCwdResult as Result};
 use hyprland::data::Client;
 use hyprland::shared::HyprDataActiveOptional;
 use procfs::process::Process;
 use std::env;
+use std::path::PathBuf;
 use std::process::exit;
 
+#[derive(Parser)]
+struct Args {
+    /// Directory to be printed if no active window is found
+    #[arg(short, long, value_name = "DIR")]
+    default_dir: Option<PathBuf>,
+}
+
 fn main() {
-    match active_window_cwd() {
-        Ok(working_dir) => {
+    let args = Args::parse();
+
+    match (active_window_cwd(), args.default_dir) {
+        (Ok(working_dir), _) => {
             println!("{}", working_dir);
         }
-        Err(err) => {
+
+        (Err(Error::NoActiveWindow), Some(default_dir)) => {
+            println!("{}", default_dir.to_string_lossy());
+        }
+
+        (Err(err), _) => {
             eprintln!("{}", err);
             exit(1);
         }
