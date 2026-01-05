@@ -4,6 +4,7 @@ version = "0.1.1"
 edition = "2024"
 
 [dependencies]
+clap = { version = "4.5.54", features = ["derive"] }
 hyprland = "0.4.0-beta.1"
 procfs = "0.17"
 thiserror = "2.0.17"

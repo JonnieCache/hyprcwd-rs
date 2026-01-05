@@ -1,17 +1,47 @@
 mod error;
 
+use clap::Parser;
 use error::{HyprCwdError as Error, HyprCwdResult as Result};
 use hyprland::data::Client;
 use hyprland::shared::HyprDataActiveOptional;
 use procfs::process::Process;
 use std::env;
+use std::path::PathBuf;
 use std::process::exit;
 
+#[derive(Parser)]
+struct Args {
+    /// Directory to be used if no active window is found
+    #[arg(short, long, value_name = "DIR")]
+    default_dir: Option<PathBuf>,
+
+    /// Always fallback to the default directory on error, not just when no active window is found
+    #[arg(long, requires = "default_dir", default_value_t = false)]
+    always_fallback: bool,
+}
+
 fn main() {
+    let args = Args::parse();
+
+    let default_dir = args
+        .default_dir
+        .map(|dir| dir.to_string_lossy().to_string());
+
     match active_window_cwd() {
         Ok(working_dir) => {
             println!("{}", working_dir);
         }
+
+        Err(Error::NoActiveWindow) if default_dir.is_some() => unsafe {
+            /* safe unwrap unchecked: default_dir is Some */
+            println!("{}", default_dir.unwrap_unchecked());
+        },
+
+        Err(_) if args.always_fallback => unsafe {
+            /* safe unwrap unchecked: clap ensures default_dir is set */
+            println!("{}", default_dir.unwrap_unchecked());
+        },
+
         Err(err) => {
             eprintln!("{}", err);
             exit(1);
