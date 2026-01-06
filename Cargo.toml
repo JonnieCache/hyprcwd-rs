@@ -5,5 +5,5 @@ edition = "2024"
 
 [dependencies]
 hyprland = "0.4.0-beta.1"
-anyhow = "1.0"
 procfs = "0.17"
+thiserror = "2.0.17"
