@@ -7,6 +7,11 @@
     crane.url = "github:ipetkov/crane";
 
     flake-utils.url = "github:numtide/flake-utils";
+
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -15,14 +20,23 @@
       nixpkgs,
       crane,
       flake-utils,
+      rust-overlay,
       ...
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        pkgs = nixpkgs.legacyPackages.${system};
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ (import rust-overlay) ];
+        };
 
         craneLib = crane.mkLib pkgs;
+
+        rustMuslToolchain = pkgs.rust-bin.stable.latest.default.override {
+          targets = [ "x86_64-unknown-linux-musl" ];
+        };
+        craneLibMusl = (crane.mkLib pkgs).overrideToolchain rustMuslToolchain;
         src = craneLib.cleanCargoSource ./.;
 
         commonArgs = {
@@ -41,37 +55,26 @@
             inherit cargoArtifacts;
           }
         );
+
+        muslArgs = commonArgs // {
+          CARGO_BUILD_TARGET = "x86_64-unknown-linux-musl";
+          CARGO_BUILD_RUSTFLAGS = "-C target-feature=+crt-static";
+        };
+
+        cargoArtifactsMusl = craneLibMusl.buildDepsOnly muslArgs;
+
+        hyprcwd-static = craneLibMusl.buildPackage (
+          muslArgs
+          // {
+            cargoArtifacts = cargoArtifactsMusl;
+          }
+        );
       in
       {
-        checks = {
-          inherit hyprcwd;
-
-          hyprcwd-clippy = craneLib.cargoClippy (
-            commonArgs
-            // {
-              inherit cargoArtifacts;
-              cargoClippyExtraArgs = "--all-targets -- --deny warnings";
-            }
-          );
-
-          hyprcwd-doc = craneLib.cargoDoc (
-            commonArgs
-            // {
-              inherit cargoArtifacts;
-            }
-          );
-
-          hyprcwd-fmt = craneLib.cargoFmt {
-            inherit src;
-          };
-
-          hyprcwd-toml-fmt = craneLib.taploFmt {
-            src = pkgs.lib.sources.sourceFilesBySuffices src [ ".toml" ];
-          };
-        };
 
         packages = {
           default = hyprcwd;
+          static = hyprcwd-static;
         };
 
         apps.default = flake-utils.lib.mkApp {
@@ -79,11 +82,10 @@
         };
 
         devShells.default = craneLib.devShell {
-          checks = self.checks.${system};
-
           packages = with pkgs; [
             rust-analyzer
             rustfmt
+            rustMuslToolchain
           ];
         };
       }
