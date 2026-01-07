@@ -12,9 +12,17 @@ Rust port of https://github.com/vilari-mickopf/hyprcwd, to shave off those milli
 
 - The included `flake.nix`
 
-- Binary from the relases page
+- Binary from the releases page
 
 ## Usage
+
+```
+Usage: hyprcwd [OPTIONS]
+
+Options:
+  -d, --default-dir <DIR>  Directory to be printed if no active window is found
+  -h, --help               Print help
+```
 
 Hyprland key binding:
 
@@ -23,3 +31,4 @@ bind = $mainMod, T, exec, kitty -d "$(hyprcwd)"
 ```
 
 or the equivalent for your terminal app.
+
