@@ -1,4 +1,4 @@
-use hyprland::shared::HyprError;
+use hyprland::error::HyprError;
 use procfs::ProcError;
 use std::env::VarError;
 use thiserror::Error;
