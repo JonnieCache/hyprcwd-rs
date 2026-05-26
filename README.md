@@ -24,11 +24,16 @@ Options:
   -h, --help               Print help
 ```
 
-Hyprland key binding:
+Hyprland Lua key binding:
+
+```
+hl.bind("SUPER + T", hl.dsp.exec_cmd([[kitty -d "$(hyprcwd)"]]))
+```
+
+Legacy hyprlang key binding:
 
 ```
 bind = $mainMod, T, exec, kitty -d "$(hyprcwd)"
 ```
 
 or the equivalent for your terminal app.
-
