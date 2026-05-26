@@ -1,6 +1,6 @@
 [package]
 name = "hyprcwd"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2024"
 description = "Outputs the working directory of the currently active window in the hyprland window manager."
 repository = "https://github.com/JonnieCache/hyprcwd-rs"
