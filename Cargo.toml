@@ -2,6 +2,9 @@
 name = "hyprcwd"
 version = "0.2.0"
 edition = "2024"
+description = "Outputs the working directory of the currently active window in the hyprland window manager."
+repository = "https://github.com/JonnieCache/hyprcwd-rs"
+license = "MIT"
 
 [dependencies]
 clap = { version = "4.6.1", features = ["derive"] }
