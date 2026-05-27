@@ -6,41 +6,28 @@ use std::path::PathBuf;
 
 pub fn active_window_pid() -> Result<i32> {
     let response = request("j/activewindow")?;
-    debug_log!("activewindow response: {response}");
 
     let active_window: serde_json::Value = serde_json::from_str(&response)?;
 
     let Some(pid) = active_window.get("pid") else {
-        debug_log!("activewindow response has no pid field");
         return Err(Error::NoActiveWindow);
     };
-
-    debug_log!("activewindow pid field: {pid}");
 
     let parsed_pid = pid
         .as_i64()
         .and_then(|pid| i32::try_from(pid).ok())
         .ok_or(Error::InvalidActiveWindowPid)?;
 
-    debug_log!("parsed active window pid: {parsed_pid}");
-
     Ok(parsed_pid)
 }
 
 fn request(command: &str) -> Result<String> {
     let socket_path = socket_path()?;
-    debug_log!(
-        "connecting to Hyprland socket {} with command {command}",
-        socket_path.display()
-    );
-
     let mut stream = UnixStream::connect(socket_path)?;
     stream.write_all(command.as_bytes())?;
 
     let mut response = Vec::new();
     stream.read_to_end(&mut response)?;
-
-    debug_log!("Hyprland IPC response length: {} bytes", response.len());
 
     Ok(String::from_utf8(response)?)
 }
@@ -65,8 +52,6 @@ fn socket_path() -> Result<PathBuf> {
     path.push("hypr");
     path.push(instance_signature);
     path.push(".socket.sock");
-
-    debug_log!("resolved Hyprland socket path: {}", path.display());
 
     Ok(path)
 }

@@ -1,12 +1,4 @@
 mod error;
-
-macro_rules! debug_log {
-    ($($arg:tt)*) => {{
-        #[cfg(debug_assertions)]
-        eprintln!("[hyprcwd debug] {}", format_args!($($arg)*));
-    }};
-}
-
 mod hyprland;
 
 use clap::Parser;
@@ -46,27 +38,19 @@ fn main() {
 }
 
 fn active_window_cwd() -> Result<String> {
-    debug_log!("starting active window cwd lookup");
-
     let window_pid = active_window_pid()?;
-    debug_log!("active window pid: {window_pid}");
 
     let candidate_pids = cwd_candidate_pids(window_pid)?;
-    debug_log!("cwd candidate pid order: {candidate_pids:?}");
 
     for pid in candidate_pids {
         match process_cwd(pid) {
             Ok(cwd) => {
-                debug_log!("cwd lookup returned from pid {pid}: {cwd}");
                 return Ok(cwd);
             }
-            Err(_err) => {
-                debug_log!("cwd lookup for pid {pid} failed: {_err}");
-            }
+            Err(_err) => {}
         }
     }
 
-    debug_log!("all cwd candidates failed; falling back to HOME");
     home_dir()
 }
 
@@ -91,15 +75,10 @@ fn cwd_candidate_pids(window_pid: i32) -> Result<Vec<i32>> {
     }
 
     let Some(window_process) = window_process else {
-        debug_log!("window process {window_pid} disappeared; trying it directly");
         return Ok(vec![window_pid]);
     };
 
     let process_tree = process_tree(window_process, &child_processes);
-    debug_log!(
-        "found {} process(es) in active window process tree",
-        process_tree.len()
-    );
 
     let mut candidates = Vec::new();
     let mut seen = HashSet::new();
@@ -120,16 +99,6 @@ fn cwd_candidate_pids(window_pid: i32) -> Result<Vec<i32>> {
     });
 
     for process in foreground_processes {
-        debug_log!(
-            "foreground tty candidate: pid={} comm={} depth={} pgrp={} tpgid={} tty={} starttime={}",
-            process.stat.pid,
-            process.stat.comm,
-            process.depth,
-            process.stat.pgrp,
-            process.stat.tpgid,
-            process.stat.tty_nr,
-            process.stat.starttime
-        );
         push_candidate(&mut candidates, &mut seen, process.stat.pid);
     }
 
@@ -141,16 +110,6 @@ fn cwd_candidate_pids(window_pid: i32) -> Result<Vec<i32>> {
     tty_processes.sort_by_key(|process| (Reverse(process.depth), Reverse(process.stat.starttime)));
 
     for process in tty_processes {
-        debug_log!(
-            "tty fallback candidate: pid={} comm={} depth={} pgrp={} tpgid={} tty={} starttime={}",
-            process.stat.pid,
-            process.stat.comm,
-            process.depth,
-            process.stat.pgrp,
-            process.stat.tpgid,
-            process.stat.tty_nr,
-            process.stat.starttime
-        );
         push_candidate(&mut candidates, &mut seen, process.stat.pid);
     }
 
@@ -170,18 +129,6 @@ fn process_tree(root: Stat, child_processes: &HashMap<i32, Vec<Stat>>) -> Vec<Pr
     let mut queue = VecDeque::from([(root, 0)]);
 
     while let Some((stat, depth)) = queue.pop_front() {
-        debug_log!(
-            "process tree entry: pid={} comm={} ppid={} depth={} pgrp={} tpgid={} tty={} starttime={}",
-            stat.pid,
-            stat.comm,
-            stat.ppid,
-            depth,
-            stat.pgrp,
-            stat.tpgid,
-            stat.tty_nr,
-            stat.starttime
-        );
-
         if let Some(children) = child_processes.get(&stat.pid) {
             for child in children {
                 queue.push_back((child.clone(), depth + 1));
@@ -204,15 +151,9 @@ fn process_cwd(pid: i32) -> Result<String> {
     let process = Process::new(pid)?;
     let cwd = process.cwd()?;
 
-    debug_log!("pid {pid} cwd candidate: {}", cwd.display());
-
     if cwd.exists() && cwd.is_dir() {
         Ok(cwd.to_string_lossy().to_string())
     } else {
-        debug_log!(
-            "pid {pid} cwd candidate is not an existing directory: {}",
-            cwd.display()
-        );
         home_dir()
     }
 }
@@ -222,8 +163,6 @@ fn home_dir() -> Result<String> {
         name: "HOME",
         source,
     })?;
-
-    debug_log!("using HOME fallback: {home}");
 
     Ok(home)
 }
