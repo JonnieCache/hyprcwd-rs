@@ -4,7 +4,7 @@ Outputs the working directory of the currently active window in the hyprland win
 
 Intended for starting a new terminal window from a hotkey, in the directory of the currently active window.
 
-Rust port of https://github.com/vilari-mickopf/hyprcwd, to shave off those milliseconds.
+Rust port of https://github.com/vilari-mickopf/hyprcwd, to shave off those milliseconds. Now featuring a more reliable algorithm.
 
 ## Install
 
