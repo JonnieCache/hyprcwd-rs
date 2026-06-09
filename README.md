@@ -37,3 +37,29 @@ bind = $mainMod, T, exec, kitty -d "$(hyprcwd)"
 ```
 
 or the equivalent for your terminal app.
+
+### NixOS / Flakes
+
+If you are using NixOS with Flakes, you can add `hyprcwd` directly to your system configuration.
+
+First, add the repository to your `flake.nix` inputs. We highly recommend using `follows` to ensure it builds using your system's existing Rust toolchain rather than downloading redundant dependencies:
+
+```nix
+inputs = {
+  # ... your other inputs
+  hyprcwd = {
+    url = "github:JonnieCache/hyprcwd-rs";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+};
+```
+
+Then, pass the inputs to your modules and add the package to your environment.systemPackages (or home.packages if using Home Manager):
+
+```nix
+{ pkgs, inputs, ... }: {
+  environment.systemPackages = [
+    inputs.hyprcwd.packages.${pkgs.system}.default
+  ];
+}
+```
