@@ -1,5 +1,6 @@
 mod error;
 mod hyprland;
+mod kitty;
 
 use clap::Parser;
 use error::{HyprCwdError as Error, HyprCwdResult as Result};
@@ -8,7 +9,7 @@ use procfs::process::{Process, Stat};
 use std::cmp::Reverse;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::env;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::exit;
 
 #[derive(Parser)]
@@ -16,12 +17,19 @@ struct Args {
     /// Directory to be printed if no active window is found
     #[arg(short, long, value_name = "DIR")]
     default_dir: Option<PathBuf>,
+
+    /// Kitty UNIX socket path/address; supports {kitty_pid}
+    #[arg(long, value_name = "SOCKET")]
+    kitty_socket: Option<String>,
 }
 
 fn main() {
     let args = Args::parse();
 
-    match (active_window_cwd(), args.default_dir) {
+    match (
+        active_window_cwd(args.kitty_socket.as_deref()),
+        args.default_dir,
+    ) {
         (Ok(working_dir), _) => {
             println!("{}", working_dir);
         }
@@ -37,8 +45,15 @@ fn main() {
     };
 }
 
-fn active_window_cwd() -> Result<String> {
+fn active_window_cwd(kitty_socket: Option<&str>) -> Result<String> {
     let window_pid = active_window_pid()?;
+    if let Some(cwd) = kitty::focused_window_cwd(window_pid, kitty_socket)? {
+        return if Path::new(&cwd).is_dir() {
+            Ok(cwd)
+        } else {
+            home_dir()
+        };
+    }
 
     let candidate_pids = cwd_candidate_pids(window_pid)?;
 

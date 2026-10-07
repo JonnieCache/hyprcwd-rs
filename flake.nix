@@ -31,12 +31,14 @@
           overlays = [ (import rust-overlay) ];
         };
 
-        craneLib = crane.mkLib pkgs;
+        stableToolchain = pkgs.rust-bin.stable.latest.default;
+        craneLib = (crane.mkLib pkgs).overrideToolchain stableToolchain;
 
-        rustMuslToolchain = pkgs.rust-bin.stable.latest.default.override {
+        rustMuslToolchain = stableToolchain.override {
           targets = [ "x86_64-unknown-linux-musl" ];
         };
         craneLibMusl = (crane.mkLib pkgs).overrideToolchain rustMuslToolchain;
+
         src = craneLib.cleanCargoSource ./.;
 
         commonArgs = {

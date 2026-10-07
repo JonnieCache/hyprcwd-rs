@@ -41,17 +41,21 @@ fn socket_path() -> Result<PathBuf> {
         },
     })?;
 
-    let mut path = if let Some(runtime_dir) = env::var_os("XDG_RUNTIME_DIR") {
-        PathBuf::from(runtime_dir)
-    } else if let Some(uid) = env::var_os("UID") {
-        PathBuf::from("/run/user").join(uid)
-    } else {
-        return Err(Error::NoRuntimeDir);
-    };
+    let mut path = runtime_dir()?;
 
     path.push("hypr");
     path.push(instance_signature);
     path.push(".socket.sock");
 
     Ok(path)
+}
+
+pub(crate) fn runtime_dir() -> Result<PathBuf> {
+    if let Some(runtime_dir) = env::var_os("XDG_RUNTIME_DIR") {
+        Ok(PathBuf::from(runtime_dir))
+    } else if let Some(uid) = env::var_os("UID") {
+        Ok(PathBuf::from("/run/user").join(uid))
+    } else {
+        Err(Error::NoRuntimeDir)
+    }
 }
