@@ -9,10 +9,30 @@ Rust port of https://github.com/vilari-mickopf/hyprcwd, to shave off those milli
 ## Install
 
 - `cargo install --path .`
-
-- The included `flake.nix`
-
 - Binary from the releases page
+
+### NixOS / Flakes
+
+If you are using NixOS with Flakes, you can add `hyprcwd` directly to your system configuration.
+
+First, add the repository to your `flake.nix` inputs, using `follows` to avoid downloading redundant dependencies:
+
+```nix
+inputs = {
+  hyprcwd = {
+    url = "github:JonnieCache/hyprcwd-rs";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+};
+```
+
+Then, pass the inputs to your modules and add the package to your environment.systemPackages (or home.packages if using Home Manager):
+
+```nix
+  environment.systemPackages = [
+    inputs.hyprcwd.packages.${pkgs.stdenv.hostPlatform.system}.default
+  ];
+```
 
 ## Usage
 
