@@ -26,12 +26,12 @@ inputs = {
 };
 ```
 
-Then, pass the inputs to your modules and add the package to your environment.systemPackages (or home.packages if using Home Manager):
+Then, pass the inputs to your modules and add the package to your `environment.systemPackages` (or `home.packages` if using Home Manager):
 
 ```nix
-  environment.systemPackages = [
-    inputs.hyprcwd.packages.${pkgs.stdenv.hostPlatform.system}.default
-  ];
+environment.systemPackages = [
+  inputs.hyprcwd.packages.${pkgs.stdenv.hostPlatform.system}.default
+];
 ```
 
 ## Usage
@@ -62,6 +62,8 @@ allow_remote_control socket-only # or just true
 listen_on unix:${XDG_RUNTIME_DIR}/kitty-{kitty_pid}
 ```
 
+You will need to actually close and reopen your kitty windows, reloading the config isn't enough.
+
 If you use the above value for `listen_on`, hyprcwd will find it automatically. If you already have kitty listening on a different path, you can supply it to hyprcwd like so:
 
 ```sh
@@ -85,8 +87,9 @@ def is_cmd_allowed(pcmd, window, from_socket, extra_data):
     )
 ```
 
-Then add this to your `kitty.conf`:
+Then add this to your `kitty.conf`, replacing the other `allow_remote_control` definition:
 
 ```conf
+allow_remote_control = "password";
 remote_control_password "" hyprcwd_auth.py
 ```
