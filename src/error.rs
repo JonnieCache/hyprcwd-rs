@@ -30,4 +30,6 @@ pub enum HyprCwdError {
     },
     #[error("error(active_window): no active window found, default not specified")]
     NoActiveWindow,
+    #[error("error(kitty): {0}")]
+    KittyError(String),
 }
