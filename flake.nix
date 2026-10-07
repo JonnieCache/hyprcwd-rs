@@ -31,10 +31,9 @@
           overlays = [ (import rust-overlay) ];
         };
 
-        stableToolchain = pkgs.rust-bin.stable.latest.default;
-        craneLib = (crane.mkLib pkgs).overrideToolchain stableToolchain;
+        craneLib = crane.mkLib pkgs;
 
-        rustMuslToolchain = stableToolchain.override {
+        rustMuslToolchain = pkgs.rust-bin.stable.latest.default.override {
           targets = [ "x86_64-unknown-linux-musl" ];
         };
         craneLibMusl = (crane.mkLib pkgs).overrideToolchain rustMuslToolchain;
