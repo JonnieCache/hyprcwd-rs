@@ -90,4 +90,3 @@ Then add this to your `kitty.conf`:
 ```conf
 remote_control_password "" hyprcwd_auth.py
 ```
-```
